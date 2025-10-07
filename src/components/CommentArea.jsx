@@ -1,25 +1,30 @@
-import { Component } from "react";
+import { useEffect, useState } from "react";
 import CommentList from "./CommentList";
 import AddComment from "./AddComment";
 import { Alert } from "react-bootstrap";
 
-class CommentArea extends Component {
-  state = {
-    comments: [],
-  };
+function CommentArea({ id }) {
+  // state = {
+  //   comments: [],
+  // };
+  const [comments, setComment] = useState([]);
 
-  commentLoad = async () => {
+  const commentLoad = async () => {
+    if (!id) {
+      setComment([]);
+      return;
+    }
     try {
-      const response = await fetch(`https://striveschool-api.herokuapp.com/api/comments/${this.props.id}`, {
+      const response = await fetch(`https://striveschool-api.herokuapp.com/api/comments/${id}`, {
         headers: {
           Authorization:
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OGNkMDUxYzZmMzAyMjAwMTUxMDgwYjgiLCJpYXQiOjE3NTk0MDQwOTksImV4cCI6MTc2MDYxMzY5OX0._D52qx_VsS0r3vSqji5KdBzrYpZMLfSlAT1Y1vg34h0",
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OGNkMDUxYzZmMzAyMjAwMTUxMDgwYjgiLCJpYXQiOjE3NTk4NDA4MDUsImV4cCI6MTc2MTA1MDQwNX0.DuFulFdc1w-VVaa3XWOeQRHLhJN2Yj1Unl_hDynp50g",
         },
       });
       if (response.ok) {
         const data = await response.json();
-        this.setState({ comments: data });
-        console.log(data);
+        setComment(data);
+        return data;
       } else {
         console.log("error");
       }
@@ -28,36 +33,34 @@ class CommentArea extends Component {
     }
   };
 
-  componentDidUpdate = (prevProps) => {
-    if (prevProps.id !== this.props.id) {
-      // console.log(` ${this.props.id}`);
-      this.commentLoad();
-    }
-  };
+  useEffect(() => {
+    // console.log(` ${this.props.id}`);
+    commentLoad();
+  }, [id]);
 
   // componentDidMount = () => {
   //   this.commentLoad();
   // };
-  hideComment = () => {
+  const hideComment = () => {
     return (
       <Alert variant="info">
         <p>Click one book to load comments!</p>
       </Alert>
     );
   };
-  render() {
-    if (!this.props.id) return this.hideComment();
-    return (
-      <div className="nav-bg p-4 rounded border border-info border-3 me-5">
-        {this.props.id && <CommentList comments={this.state.comments} />}
-        {/* {!this.props.id && (
+
+  if (!id) return hideComment();
+  return (
+    <div className="nav-bg p-4 rounded border border-info border-3 me-5">
+      {id && <CommentList comments={comments} />}
+      {/* {!this.props.id && (
           <Alert variant="info">
             <p>Click one book to load comments!</p>
           </Alert>
         )} */}
-        {this.props.id && <AddComment id={this.props.id} commentRefresh={this.commentLoad} />}
-      </div>
-    );
-  }
+      {id && <AddComment id={id} commentRefresh={commentLoad} />}
+    </div>
+  );
 }
+
 export default CommentArea;
